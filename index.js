@@ -29,21 +29,32 @@ import {
 
 
 fs.readFile('fsu_data_list_copy.DAT', 'utf-8', (err, data) => {
+    let dat_files = [];
     let data_cur = data.split("\n").join("")
     let new_data = data_cur.split("\r").join("")
-    console.log('new_data length', new_data.length)
+    // console.log('new_data length', new_data.length)
     let position = 0
     while (position <= new_data.length - 1) {
         let r_no_fsu = new_data.slice(position, position + 9)
-        console.log('r_no_fsu', r_no_fsu)
+        // console.log('r_no_fsu', r_no_fsu)
         let no_fsu = r_no_fsu.slice(1)
-        console.log('no_fsu', no_fsu)
+        // console.log('no_fsu', no_fsu)
         let position_fsu = new_data.indexOf(`F${no_fsu}`)
         let first_data = new_data.slice(position, position_fsu + 14)
-        let add_position = read_fsu(first_data)
+        const response_read_fsu = read_fsu(first_data);
+        let add_position = response_read_fsu.position;
         position += add_position
-        console.log('position counter', position)
+        // console.log('document', response_read_fsu.fsu_document)
+        dat_files.push(response_read_fsu.fsu_document)
     }
+    // console.log('documents', dat_files);
+    fs.writeFile("output.json", JSON.stringify(dat_files), (err) => {
+        if (err) {
+            console.error('Error writing to file:', err);
+        } else {
+            // console.log('Content has been written to the file.');
+        }
+    });
     //read_fsu(data)
 
 })
@@ -108,7 +119,7 @@ function parseDate(value) {
         const month = parseInt(value.slice(2, 4));
         const year = parseInt(value.slice(4));
         const dateObject = new Date(year, month - 1, day);
-        console.log(dateObject)
+        // console.log(dateObject)
         const formattedDate = dateObject.toISOString();
         return formattedDate
     } catch {
@@ -473,7 +484,7 @@ function read_fsu(data) {
     //     if (err) {
     //         console.error('Error writing to file:', err);
     //     } else {
-    //         console.log('Content has been written to the file.');
+    //         // console.log('Content has been written to the file.');
     //     }
     // });
     formfsu['fsu_caracteristicas_poblacion'] = []
@@ -570,36 +581,40 @@ function read_fsu(data) {
     //     if (err) {
     //         console.error('Error writing to file:', err);
     //     } else {
-    //         console.log('Content has been written to the file.');
+    //         // console.log('Content has been written to the file.');
     //     }
     // });
-    fs.readFile("output.json", 'utf8', (err, existingContent) => {
-        if (err) {
-            console.error('Error reading file:', err);
-        } else {
-            // Combine the existing content and the new JSON content with a newline
-            //console.log('existingContent', existingContent)
-            const combinedContent = existingContent + ',\n' + JSON.stringify(formfsu)
+    // fs.readFile("output.json", 'utf8', (err, existingContent) => {
+    //     if (err) {
+    //         console.error('Error reading file:', err);
+    //     } else {
+    //         // Combine the existing content and the new JSON content with a newline
+    //         //// console.log('existingContent', existingContent)
+    //         const combinedContent = existingContent + ',\n' + JSON.stringify(formfsu)
 
-            // Write the combined content back to the file
-            fs.appendFile("output.json", combinedContent, (writeErr) => {
-                if (writeErr) {
-                    console.error('Error writing file:', writeErr);
-                } else {
-                    console.log('New JSON content has been added to the file.');
-                }
-            });
-        }
-    });
+    //         // Write the combined content back to the file
+    //         fs.appendFile("output.json", combinedContent, (writeErr) => {
+    //             if (writeErr) {
+    //                 console.error('Error writing file:', writeErr);
+    //             } else {
+    //                 // console.log('New JSON content has been added to the file.');
+    //             }
+    //         });
+    //     }
+    // });
 
+    
     //fsu number
     position += 9
 
     let do_firma_informante = data.slice(position, position += 2)
     let informante_firma = data.slice(position, position += 2)
     let unknown = data.slice(position, position += 1)
-    console.log('do_firma_informante', do_firma_informante)
-    console.log('informante_firma', informante_firma)
-    console.log('unknown', unknown)
-    return position
+    // // console.log('do_firma_informante', do_firma_informante)
+    // // console.log('informante_firma', informante_firma)
+    // // console.log('unknown', unknown)
+    return {
+        position,
+        fsu_document: formfsu
+    }
 }
